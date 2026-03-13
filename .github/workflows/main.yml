@@ -7,7 +7,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout repo (your workflow repo)
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -15,26 +15,23 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install ClawHub CLI (optional, only if needed later)
-        run: npm install -g clawhub@latest || echo "ClawHub install skipped or failed, continuing"
-
-      - name: Clone Verified Agent Identity repo (fallback since clawhub may fail)
+      - name: Clone Verified Agent Identity repo directly
         run: |
+          mkdir -p skills
           git clone https://github.com/BillionsNetwork/verified-agent-identity.git skills/verified-agent-identity
-          ls -la skills/verified-agent-identity  # debug: pastikan folder ada
+          echo "Cloned repo:"
+          ls -la skills/verified-agent-identity
 
       - name: Install dependencies
         run: |
           cd skills/verified-agent-identity
           npm install
-          # Install explicit deps yang sering dibutuhkan (dari README & user guides)
-          npm install shell-quote @iden3/js-iden3-auth @0xpolygonid/js-sdk ethers uuid cross-fetch --save
+          # Tambah deps eksplisit dari repo (ethers, polygonid, dll.)
+          npm install @0xpolygonid/js-sdk ethers uuid cross-fetch shell-quote --save
 
-      - name: Debug - List installed files
+      - name: Debug - Check scripts folder
         run: |
-          pwd
-          ls -la skills/verified-agent-identity
-          ls -la skills/verified-agent-identity/scripts || echo "Scripts folder not found!"
+          ls -la skills/verified-agent-identity/scripts || echo "Scripts folder missing!"
 
       - name: Create new Ethereum Identity
         run: |
@@ -46,9 +43,10 @@ jobs:
           cd skills/verified-agent-identity
           node scripts/manualLinkHumanToAgent.js --challenge '{"name":"febrianin00","description":"febrianin00 AI Agent"}'
 
-      - name: Show verification info
+      - name: Show verification link instructions
         run: |
-          echo "Proses selesai! Cek output step 'Link Human to Agent' di atas."
-          echo "Biasanya ada link verifikasi seperti: https://wallet.billions.network#challenge=..."
-          echo "Copy link itu → buka di browser (wallet Billions Network) untuk verifikasi human ke agent."
-          echo "Jika ada error di node scripts, paste log-nya untuk debug lanjut."
+          echo "SUKSES jika tidak error di atas!"
+          echo "Cek output step 'Link Human to Agent' — cari link seperti:"
+          echo "https://wallet.billions.network#challenge=... atau #i_m=..."
+          echo "Copy link lengkap itu → paste di browser (pastikan login Billions wallet jika perlu)."
+          echo "Verifikasi selesai setelah sign/confirm di wallet → agent kamu verified di Billions Network."
