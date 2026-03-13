@@ -15,37 +15,26 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install ClawHub CLI
-        run: npm install -g clawhub@latest
+      - name: Install ClawHub CLI (optional, only if needed later)
+        run: npm install -g clawhub@latest || echo "ClawHub install skipped or failed, continuing"
 
-      - name: Install Verified Agent Identity skill
-        run: clawhub install verified-agent-identity || echo "Install gagal, tapi lanjut untuk debug"
+      - name: Clone Verified Agent Identity repo (fallback since clawhub may fail)
+        run: |
+          git clone https://github.com/BillionsNetwork/verified-agent-identity.git skills/verified-agent-identity
+          ls -la skills/verified-agent-identity  # debug: pastikan folder ada
 
-      - name: Debug - List files after install
+      - name: Install dependencies
+        run: |
+          cd skills/verified-agent-identity
+          npm install
+          # Install explicit deps yang sering dibutuhkan (dari README & user guides)
+          npm install shell-quote @iden3/js-iden3-auth @0xpolygonid/js-sdk ethers uuid cross-fetch --save
+
+      - name: Debug - List installed files
         run: |
           pwd
-          ls -la
-          ls -la skills || echo "Folder skills tidak ada!"
-          if [ -d "skills/verified-agent-identity" ]; then
-            echo "Folder ditemukan!"
-            ls -la skills/verified-agent-identity
-          else
-            echo "Folder verified-agent-identity TIDAK ditemukan!"
-          fi
-
-      - name: Install dependencies for the skill (with fallback)
-        run: |
-          if [ -d "skills/verified-agent-identity" ]; then
-            cd skills/verified-agent-identity
-            npm install
-          else
-            echo "Fallback: Clone repo langsung dari GitHub karena clawhub install gagal"
-            git clone https://github.com/BillionsNetwork/verified-agent-identity.git skills/verified-agent-identity
-            cd skills/verified-agent-identity
-            npm install
-            # Install deps manual yang dibutuhkan (dari contoh user lain)
-            npm install shell-quote @iden3/js-iden3-auth @0xpolygonid/js-sdk ethers uuid cross-fetch
-          fi
+          ls -la skills/verified-agent-identity
+          ls -la skills/verified-agent-identity/scripts || echo "Scripts folder not found!"
 
       - name: Create new Ethereum Identity
         run: |
@@ -59,5 +48,7 @@ jobs:
 
       - name: Show verification info
         run: |
-          echo "Jika sukses, cek output step sebelumnya untuk link verifikasi (biasanya https://wallet.billions.network#...)"
-          echo "Buka link itu di browser/wallet untuk verifikasi human → agent."
+          echo "Proses selesai! Cek output step 'Link Human to Agent' di atas."
+          echo "Biasanya ada link verifikasi seperti: https://wallet.billions.network#challenge=..."
+          echo "Copy link itu → buka di browser (wallet Billions Network) untuk verifikasi human ke agent."
+          echo "Jika ada error di node scripts, paste log-nya untuk debug lanjut."
