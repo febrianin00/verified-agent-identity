@@ -6,47 +6,66 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repo (your workflow repo)
+      - name: Checkout workflow repo
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: "npm"
 
-      - name: Clone Verified Agent Identity repo directly
+      - name: Clone Verified Agent Identity repo
         run: |
           mkdir -p skills
-          git clone https://github.com/BillionsNetwork/verified-agent-identity.git skills/verified-agent-identity
-          echo "Cloned repo:"
+          git clone --depth 1 https://github.com/BillionsNetwork/verified-agent-identity.git skills/verified-agent-identity
+          echo "Repository cloned successfully"
           ls -la skills/verified-agent-identity
 
       - name: Install dependencies
+        working-directory: skills/verified-agent-identity
         run: |
-          cd skills/verified-agent-identity
           npm install
-          # Tambah deps eksplisit dari repo (ethers, polygonid, dll.)
-          npm install @0xpolygonid/js-sdk ethers uuid cross-fetch shell-quote --save
+          npm install @0xpolygonid/js-sdk ethers uuid cross-fetch shell-quote
 
-      - name: Debug - Check scripts folder
+      - name: Check scripts folder
+        working-directory: skills/verified-agent-identity
         run: |
-          ls -la skills/verified-agent-identity/scripts || echo "Scripts folder missing!"
+          if [ ! -d "scripts" ]; then
+            echo "❌ Scripts folder not found!"
+            exit 1
+          fi
+          ls -la scripts
 
       - name: Create new Ethereum Identity
+        working-directory: skills/verified-agent-identity
         run: |
-          cd skills/verified-agent-identity
+          echo "Creating Ethereum Identity..."
           node scripts/createNewEthereumIdentity.js
 
       - name: Link Human to Agent
+        working-directory: skills/verified-agent-identity
         run: |
-          cd skills/verified-agent-identity
-          node scripts/manualLinkHumanToAgent.js --challenge '{"name":"febrianin00","description":"febrianin00 AI Agent"}'
+          echo "Linking Human Identity to Agent..."
+          node scripts/manualLinkHumanToAgent.js \
+          --challenge '{"name":"febrianin00","description":"febrianin00 AI Agent"}'
 
-      - name: Show verification link instructions
+      - name: Verification instructions
         run: |
-          echo "SUKSES jika tidak error di atas!"
-          echo "Cek output step 'Link Human to Agent' — cari link seperti:"
-          echo "https://wallet.billions.network#challenge=... atau #i_m=..."
-          echo "Copy link lengkap itu → paste di browser (pastikan login Billions wallet jika perlu)."
-          echo "Verifikasi selesai setelah sign/confirm di wallet → agent kamu verified di Billions Network."
+          echo ""
+          echo "========================================"
+          echo "Jika tidak ada error di atas berarti SUCCESS"
+          echo ""
+          echo "Cari link seperti ini di output sebelumnya:"
+          echo "https://wallet.billions.network#challenge=..."
+          echo "atau"
+          echo "https://wallet.billions.network#i_m=..."
+          echo ""
+          echo "Copy link tersebut ke browser"
+          echo "Login ke Billions Wallet"
+          echo "Sign / Confirm challenge"
+          echo ""
+          echo "Setelah itu AI Agent kamu akan VERIFIED."
+          echo "========================================"
