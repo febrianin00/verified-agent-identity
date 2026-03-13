@@ -8,20 +8,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4   # upgrade ke v4 lebih aman & cepat
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: 'npm'               # optional: cache node_modules biar lebih cepat run ulang
+          cache: 'none'  # ← Ini yang fix error lock file
 
       - name: Install ClawHub CLI
-        run: npm install -g clawhub@latest   # pakai @latest biar selalu dapat versi terbaru
+        run: npm install -g clawhub@latest
 
       - name: Install Verified Agent Identity skill
         run: clawhub install verified-agent-identity
-        # Catatan: Ini akan install ke folder ./skills/verified-agent-identity (default behavior ClawHub)
+        # Install ke ./skills/verified-agent-identity
 
       - name: Install dependencies for the skill
         run: |
@@ -38,6 +38,8 @@ jobs:
           cd skills/verified-agent-identity
           node scripts/manualLinkHumanToAgent.js --challenge '{"name":"febrianin00","description":"febrianin00 AI Agent"}' 
 
-      # Optional: Tambah step ini kalau ingin lihat output/link verifikasi
       - name: Show possible verification link (manual check)
-        run: echo "Cek log di atas — biasanya ada link verifikasi seperti https://wallet.billions.network#..."
+        run: |
+          echo "Cek log Actions di atas — biasanya script manualLinkHumanToAgent.js print link verifikasi seperti:"
+          echo "https://wallet.billions.network#challenge=... atau sejenisnya"
+          echo "Copy link itu dan buka di browser untuk verifikasi human → agent."
