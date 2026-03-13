@@ -14,18 +14,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: 'none'  # ← Ini yang fix error lock file
+          # Tidak perlu cache di sini → repo kamu tidak punya package.json di root
 
       - name: Install ClawHub CLI
         run: npm install -g clawhub@latest
 
       - name: Install Verified Agent Identity skill
         run: clawhub install verified-agent-identity
-        # Install ke ./skills/verified-agent-identity
 
       - name: Install dependencies for the skill
         run: |
-          cd skills/verified-agent-identity
+          cd skills/verified-agent-identity || { echo "Folder skills/verified-agent-identity tidak ditemukan!"; exit 1; }
           npm install
 
       - name: Create new Ethereum Identity
@@ -40,6 +39,6 @@ jobs:
 
       - name: Show possible verification link (manual check)
         run: |
-          echo "Cek log Actions di atas — biasanya script manualLinkHumanToAgent.js print link verifikasi seperti:"
-          echo "https://wallet.billions.network#challenge=... atau sejenisnya"
-          echo "Copy link itu dan buka di browser untuk verifikasi human → agent."
+          echo "Cek output di step 'Link Human to Agent' di atas."
+          echo "Biasanya ada link verifikasi seperti https://wallet.billions.network#challenge=... "
+          echo "Copy link itu → buka di browser/wallet untuk verifikasi human ke agent."
