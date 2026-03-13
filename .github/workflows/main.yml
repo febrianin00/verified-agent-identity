@@ -40,7 +40,7 @@ jobs:
       - name: Link Human to Agent
         run: |
           node skills/verified-agent-identity/scripts/manualLinkHumanToAgent.js \
-          --challenge '{"name":"febrianin00","description":"febrianin00 AI Agent"}'
+          --challenge '{"name":"tandi876","description":"tandi876 AI Agent"}'
 
       - name: Verification instruction
         run: |
