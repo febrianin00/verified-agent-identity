@@ -15,13 +15,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
 
       - name: Clone Verified Agent Identity repo
         run: |
           mkdir -p skills
           git clone --depth 1 https://github.com/BillionsNetwork/verified-agent-identity.git skills/verified-agent-identity
-          echo "Repository cloned successfully"
           ls -la skills/verified-agent-identity
 
       - name: Install dependencies
@@ -33,39 +31,20 @@ jobs:
       - name: Check scripts folder
         working-directory: skills/verified-agent-identity
         run: |
-          if [ ! -d "scripts" ]; then
-            echo "❌ Scripts folder not found!"
-            exit 1
-          fi
           ls -la scripts
 
       - name: Create new Ethereum Identity
         working-directory: skills/verified-agent-identity
-        run: |
-          echo "Creating Ethereum Identity..."
-          node scripts/createNewEthereumIdentity.js
+        run: node scripts/createNewEthereumIdentity.js
 
       - name: Link Human to Agent
         working-directory: skills/verified-agent-identity
         run: |
-          echo "Linking Human Identity to Agent..."
           node scripts/manualLinkHumanToAgent.js \
           --challenge '{"name":"febrianin00","description":"febrianin00 AI Agent"}'
 
       - name: Verification instructions
         run: |
-          echo ""
-          echo "========================================"
-          echo "Jika tidak ada error di atas berarti SUCCESS"
-          echo ""
-          echo "Cari link seperti ini di output sebelumnya:"
-          echo "https://wallet.billions.network#challenge=..."
-          echo "atau"
-          echo "https://wallet.billions.network#i_m=..."
-          echo ""
-          echo "Copy link tersebut ke browser"
-          echo "Login ke Billions Wallet"
-          echo "Sign / Confirm challenge"
-          echo ""
-          echo "Setelah itu AI Agent kamu akan VERIFIED."
-          echo "========================================"
+          echo "Cari link verification di log step sebelumnya"
+          echo "Buka link https://wallet.billions.network#challenge=..."
+          echo "Login dan sign untuk verifikasi."
