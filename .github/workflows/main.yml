@@ -1,36 +1,43 @@
 name: Verify Human Identity
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
-  verify:
-    runs-on: ubuntu-latest
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4   # upgrade ke v4 lebih aman & cepat
 
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: 'npm'               # optional: cache node_modules biar lebih cepat run ulang
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "20"
+      - name: Install ClawHub CLI
+        run: npm install -g clawhub@latest   # pakai @latest biar selalu dapat versi terbaru
 
-      - name: Install ClawHub
-        run: npm install -g clawhub
+      - name: Install Verified Agent Identity skill
+        run: clawhub install verified-agent-identity
+        # Catatan: Ini akan install ke folder ./skills/verified-agent-identity (default behavior ClawHub)
 
-      - name: Install Verified Agent Identity
-        run: clawhub install verified-agent-identity
+      - name: Install dependencies for the skill
+        run: |
+          cd skills/verified-agent-identity
+          npm install
 
-      - name: Install dependencies
-        run: |
-          cd scripts
-          npm install
+      - name: Create new Ethereum Identity
+        run: |
+          cd skills/verified-agent-identity
+          node scripts/createNewEthereumIdentity.js
 
-      - name: Create Ethereum Identity
-        run: node scripts/createNewEthereumIdentity.js
+      - name: Link Human to Agent
+        run: |
+          cd skills/verified-agent-identity
+          node scripts/manualLinkHumanToAgent.js --challenge '{"name":"febrianin00","description":"febrianin00 AI Agent"}' 
 
-      - name: Link Human to Agent
-        run: |
-          node scripts/manualLinkHumanToAgent.js --challenge '{"name":"febrianin00","description":"febrianin00 AI Agent"}'
-          
+      # Optional: Tambah step ini kalau ingin lihat output/link verifikasi
+      - name: Show possible verification link (manual check)
+        run: echo "Cek log di atas — biasanya ada link verifikasi seperti https://wallet.billions.network#..."
