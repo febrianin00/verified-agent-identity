@@ -14,18 +14,38 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          # Tidak perlu cache di sini → repo kamu tidak punya package.json di root
 
       - name: Install ClawHub CLI
         run: npm install -g clawhub@latest
 
       - name: Install Verified Agent Identity skill
-        run: clawhub install verified-agent-identity
+        run: clawhub install verified-agent-identity || echo "Install gagal, tapi lanjut untuk debug"
 
-      - name: Install dependencies for the skill
+      - name: Debug - List files after install
         run: |
-          cd skills/verified-agent-identity || { echo "Folder skills/verified-agent-identity tidak ditemukan!"; exit 1; }
-          npm install
+          pwd
+          ls -la
+          ls -la skills || echo "Folder skills tidak ada!"
+          if [ -d "skills/verified-agent-identity" ]; then
+            echo "Folder ditemukan!"
+            ls -la skills/verified-agent-identity
+          else
+            echo "Folder verified-agent-identity TIDAK ditemukan!"
+          fi
+
+      - name: Install dependencies for the skill (with fallback)
+        run: |
+          if [ -d "skills/verified-agent-identity" ]; then
+            cd skills/verified-agent-identity
+            npm install
+          else
+            echo "Fallback: Clone repo langsung dari GitHub karena clawhub install gagal"
+            git clone https://github.com/BillionsNetwork/verified-agent-identity.git skills/verified-agent-identity
+            cd skills/verified-agent-identity
+            npm install
+            # Install deps manual yang dibutuhkan (dari contoh user lain)
+            npm install shell-quote @iden3/js-iden3-auth @0xpolygonid/js-sdk ethers uuid cross-fetch
+          fi
 
       - name: Create new Ethereum Identity
         run: |
@@ -37,8 +57,7 @@ jobs:
           cd skills/verified-agent-identity
           node scripts/manualLinkHumanToAgent.js --challenge '{"name":"febrianin00","description":"febrianin00 AI Agent"}'
 
-      - name: Show possible verification link (manual check)
+      - name: Show verification info
         run: |
-          echo "Cek output di step 'Link Human to Agent' di atas."
-          echo "Biasanya ada link verifikasi seperti https://wallet.billions.network#challenge=... "
-          echo "Copy link itu → buka di browser/wallet untuk verifikasi human ke agent."
+          echo "Jika sukses, cek output step sebelumnya untuk link verifikasi (biasanya https://wallet.billions.network#...)"
+          echo "Buka link itu di browser/wallet untuk verifikasi human → agent."
