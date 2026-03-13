@@ -16,21 +16,23 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install required packages globally
-        run: |
-          npm install -g ethers uuid cross-fetch shell-quote @0xpolygonid/js-sdk
-
       - name: Clone Verified Agent Identity repo
         run: |
           mkdir -p skills
-          git clone --depth 1 https://github.com/BillionsNetwork/verified-agent-identity.git skills/verified-agent-identity
+          git clone https://github.com/BillionsNetwork/verified-agent-identity.git skills/verified-agent-identity
           ls -la skills/verified-agent-identity
 
-      - name: Check scripts folder
+      - name: Install dependencies locally
+        run: |
+          cd skills/verified-agent-identity
+          npm init -y
+          npm install ethers uuid cross-fetch shell-quote @0xpolygonid/js-sdk
+
+      - name: Check scripts
         run: |
           ls -la skills/verified-agent-identity/scripts
 
-      - name: Create new Ethereum Identity
+      - name: Create Ethereum Identity
         run: |
           node skills/verified-agent-identity/scripts/createNewEthereumIdentity.js
 
@@ -39,9 +41,9 @@ jobs:
           node skills/verified-agent-identity/scripts/manualLinkHumanToAgent.js \
           --challenge '{"name":"febrianin00","description":"febrianin00 AI Agent"}'
 
-      - name: Verification instructions
+      - name: Show verification instruction
         run: |
-          echo "SUCCESS jika tidak ada error"
+          echo "Jika tidak ada error berarti berhasil."
           echo "Cari link seperti:"
           echo "https://wallet.billions.network#challenge=..."
           echo "Buka link tersebut dan sign di wallet."
